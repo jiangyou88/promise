@@ -48,7 +48,7 @@ p.then(function(){
 //6.判断x是不是promise，如果x是对象并且x的then方法是函数我们就认为他是一个promise
 
 
-
+//7.有些人写的promise可能会即调用成功， 又调用失败 ，如果两个都调用先调用谁另外一个就忽略掉
 
 
 
@@ -68,3 +68,8 @@ p.then(function(){
 // },function(err){
 //     console.log(err);
 // })
+
+
+//下载一个Promise的测试库，promises-aplus-tests 文件名
+//npm install -g
+//promises-aplus-tests 文件名
