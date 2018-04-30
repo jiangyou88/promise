@@ -5,13 +5,56 @@
 //yield等号前面的是我们当前调用next传进来的值
 //第一次next传值是无效的
 
-function *read(){
+function* read() {
     console.log(1);
-    let a=yield "星期一";
+    let a = yield "星期一";
     console.log(a);
-    let b=yield "星期二";
+    let b = yield "星期二";
     console.log(b);
     return b;
 };
-let it=read();
-console.log(it.next());//{ value: '星期一', done: false }
+let it = read();
+console.log(it.next()); //{ value: '星期一', done: false }
+console.log(it.next()); //{ value: '星期二', done: false }
+console.log(it.next()); //{ value: 'undefined', done: true }
+
+
+//异步 generator主要和promise搭配使用
+let bluebird = require("bluebird");
+let fs = require("fs");
+let read = bluebird.promisify(fs.readFile);
+
+function* r() {
+    let content1 = yield read("./1.txt", "utf8");
+    let content2 = yield read(content1, "utf8");
+    return content2;
+}
+//npm install co
+//let co=require("co");
+co(r()).then(function (data) {
+    console.log(data);
+})
+
+function co(it) {
+    return new Promise(function (resolve, reject) {
+        function next(d) {
+            let {value,done} = it.next();
+            if (!done) {
+                value.then(function (data) {
+                    next(data) //2.txt
+                }, reject)
+            } else {
+                resolve(value);
+            }
+
+        };
+        next();
+    })
+}
+
+// let it=r();
+// it.next().value.then(function(data){
+//     it.next(data).value.then(function(data){
+//         console.log(it.next(data).value);
+//     });
+// });
