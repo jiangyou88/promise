@@ -1,6 +1,7 @@
 //需要下载 npm install q
 // let Q=require("q");
  let fs=require("fs");
+ console.log(fs.readFile);
 // function read(url){
 //     return new Promise(function(resolve,reject){
 //         fs.readFile(url,"utf8",function(err,data){

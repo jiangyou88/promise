@@ -31,9 +31,7 @@ function* r() {
 }
 //npm install co
 //let co=require("co");
-co(r()).then(function (data) {
-    console.log(data);
-})
+
 
 function co(it) {
     return new Promise(function (resolve, reject) {
@@ -52,9 +50,15 @@ function co(it) {
     })
 }
 
+co(r()).then(function (data) {
+    console.log(data);
+})
+
 // let it=r();
 // it.next().value.then(function(data){
 //     it.next(data).value.then(function(data){
 //         console.log(it.next(data).value);
 //     });
 // });
+
+//generator原理是将一个函数划分成若干个小函数，每次调用时移动指针，内部是一个条件判断，
