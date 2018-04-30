@@ -59,8 +59,8 @@ function resolvePromise(p2, x, resolve, reject) {
                 resolve(x);
             }
         } catch (e) {
-            if(called) return;
-            called=true;
+            if (called) return;
+            called = true;
             reject(e);
         }
 
@@ -70,15 +70,19 @@ function resolvePromise(p2, x, resolve, reject) {
 };
 Promise.prototype.then = function (onFulfilled, onRjected) {
     //成功和失败默认不穿给一个函数
-    onFulfilled=typeof onFulfilled==="function"?onFulfilled:function(value){return value;};
-    onRjected=typeof onRjected==="function"?onRjected:function(err){throw err;};
+    onFulfilled = typeof onFulfilled === "function" ? onFulfilled : function (value) {
+        return value;
+    };
+    onRjected = typeof onRjected === "function" ? onRjected : function (err) {
+        throw err;
+    };
     let self = this;
     let promise2; //返回的promise
     if (self.status === "resolved") {
         promise2 = new Promise(function (resolve, reject) {
             //当成功或者失败执行时有异常那么返回的promise应该处于失败状态
             //x可能是一个promise也有可能是一个普通的值
-            setTimeout(function(){
+            setTimeout(function () {
                 try {
                     let x = onFulfilled(self.value);
                     //x可能是别人promise，写一个方法统一处理
@@ -87,13 +91,13 @@ Promise.prototype.then = function (onFulfilled, onRjected) {
                     reject(e); //reject指的是promise2的失败
                 };
             })
-            
+
         });
 
     }
     if (self.status === "rejected") {
         promise2 = new Promise(function (resolve, reject) {
-            setTimeout(function(){
+            setTimeout(function () {
                 try {
                     let x = onRjected(self.reason);
                     resolvePromise(promise2, x, resolve, reject);
@@ -101,14 +105,14 @@ Promise.prototype.then = function (onFulfilled, onRjected) {
                     reject(e);
                 };
             })
-            
+
         });
     }
     //当调用then时可能没成功，也没失败
     if (self.status === "pending") {
         promise2 = new Promise(function (resolve, reject) {
             self.onResolvedCallbacks.push(function () {
-                setTimeout(function(){
+                setTimeout(function () {
                     try {
                         let x = onFulfilled(self.value);
                         resolvePromise(promise2, x, resolve, reject);
@@ -116,27 +120,70 @@ Promise.prototype.then = function (onFulfilled, onRjected) {
                         reject(e);
                     }
                 })
-                
+
             });
             self.onRejectedCallbacks.push(function () {
-                setTimeout(function(){
+                setTimeout(function () {
                     try {
                         let x = onRjected(self.reason);
                         resolvePromise(promise2, x, resolve, reject);
                     } catch (e) {
                         reject(e);
                     }
-                })               
+                })
             });
         });
     }
     return promise2;
 };
-Promise.defer=Promise.deferred=function(){
-    let dfd={};
-    dfd.promise=new Promise(function(resolve,reject){
-        dfd.resolve=resolve;
-        dfd.reject=reject;
+//捕获错误的方法
+Promise.prototype.catch = function (callback) {
+    return this.then(null, callback)
+}
+//解析全部的方法
+Promise.all = function (promises) { //promises是一个promise的数组
+    return new Promise(function (resolve, reject) {
+        let arr = []; //arr是最终返回值得结果
+        let i = 0; //表示成功了多少次
+        function processData(index, y) {
+            arr[index] = y;
+            if (i++ === promises.length) {
+                resolve(arr);
+            }
+        }
+        for (let i = 0; i < promises.length; i++) {
+            promises[i].then(function (y) {
+                processData(i, y);
+            }, reject)
+        }
+    })
+
+}
+//只要有一个promise成功了，就算成功，如果第一个失败了就失败了
+Promise.race = function (promises) {
+    return new Promise(function(resolve,reject){
+        for(var i=0;i<promises.length;i++){
+            promises[i].then(resolve,reject);
+        }
+    })  
+};
+//生成一个成功的promise
+Promise.resolve=function(value){
+    return new Promise(function(resolve,reject){
+        resolve(value)
+    })
+};
+//生成一个失败的promise
+Promise.reject=function(reason){
+    return new Promise(function(resolve,reject){
+        reject(reason);
+    })
+}
+Promise.defer = Promise.deferred = function () {
+    let dfd = {};
+    dfd.promise = new Promise(function (resolve, reject) {
+        dfd.resolve = resolve;
+        dfd.reject = reject;
     });
     return dfd;
 }
